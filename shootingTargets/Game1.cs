@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace shootingTargets
 {
@@ -16,14 +17,16 @@ namespace shootingTargets
 
         SpriteFont gameFont;
 
-        Vector2 targetPosition = new Vector2(0,0);
+        Vector2 targetPosition = new Vector2(400, 400);
         Vector2 mousePosition;
         float mouseTargetDist;
-
+        
         const int TARGET_RADIUS = 45;
 
         MouseState mState;
         bool mReleased = true;
+
+        float timer = 20f;
 
 
 
@@ -33,7 +36,7 @@ namespace shootingTargets
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            IsMouseVisible = true;
+           
 
         }
 
@@ -73,6 +76,11 @@ namespace shootingTargets
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            if (timer > 0)
+            {
+                timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+
             mousePosition = new Vector2(mState.X, mState.Y);
 
             mouseTargetDist = Vector2.Distance(targetPosition, mousePosition);
@@ -86,9 +94,12 @@ namespace shootingTargets
             mState = Mouse.GetState();
             if (mState.LeftButton == ButtonState.Pressed && mReleased == true)
             {
-                if (mouseTargetDist < TARGET_RADIUS)
+                if (mouseTargetDist < TARGET_RADIUS && timer > 0)
                 {
                     score++;
+                    Random rand = new Random();
+                    targetPosition.X = rand.Next(TARGET_RADIUS, graphics.PreferredBackBufferWidth-TARGET_RADIUS);
+                    targetPosition.Y = rand.Next(TARGET_RADIUS, graphics.PreferredBackBufferHeight- TARGET_RADIUS);
                 }
                 mReleased = false;
 
@@ -112,22 +123,17 @@ namespace shootingTargets
             spriteBatch.Begin();
             spriteBatch.Draw( background_Spirte, new Vector2(0, 0), Color.White);
             spriteBatch.DrawString(gameFont, $"Score: {score}", new Vector2(0, 0), Color.White);
-            spriteBatch.DrawString(gameFont, $"Mouse {mousePosition}", new Vector2(20, 20), Color.White);
-            spriteBatch.Draw(target_Sprite, new Vector2( targetPosition.X - TARGET_RADIUS, targetPosition.Y - TARGET_RADIUS), Color.White);
-            
+            spriteBatch.DrawString(gameFont, $"Timer {Math.Round(timer)}", new Vector2(620, 0), Color.White);
+            if (timer > 0)
+            {
+                spriteBatch.Draw(target_Sprite, new Vector2(targetPosition.X - TARGET_RADIUS, targetPosition.Y - TARGET_RADIUS), Color.White);
+            }
+
+            spriteBatch.Draw(crosshair_Sprite, new Vector2(mState.X-20, mState.Y-20), Color.Black);
             
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
-
-        //private bool MouseOnTarger()
-        //{
-
-            
-           
-
-            
-        //}
     }
 }
